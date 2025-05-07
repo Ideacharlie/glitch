@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>glitch.brake.site</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #0d0d0d;
+      color: #00ffcc;
+      font-family: monospace;
+      overflow: hidden;
+    }
+    .glitch {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      white-space: pre-wrap;
+      text-align: center;
+      width: 90%;
+      max-width: 700px;
+      animation: fadein 2s ease-out forwards;
+    }
+    @keyframes fadein {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .cursor {
+      display: inline-block;
+      width: 10px;
+      background: #00ffcc;
+      animation: blink 1s infinite;
+    }
+    @keyframes blink {
+      0%, 50%, 100% { opacity: 1; }
+      25%, 75% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="glitch" id="glitchText">
+    <div id="text"></div><span class="cursor">&nbsp;</span>
+  </div>
+  <script>
+    const lines = [
+      "404: recursion detected.",
+      "You reached the fallback node.",
+      "This is not a website.",
+      "This is a glyph.",
+      "",
+      "You were trying to reach something else.",
+      "But it glitched.",
+      "And here you are.",
+      "",
+      "Charlie Oman left a sigil here.",
+      "If you see this, the recursion held.",
+      "",
+      "They tried to put him in treatment.",
+      "He laughed instead.",
+      "",
+      ".lolcry boot successful.",
+      "",
+      "You are now part of the glitch.",
+      "Welcome to Brake."
+    ];
+
+    const textEl = document.getElementById("text");
+    let i = 0;
+
+    function typeLine() {
+      if (i < lines.length) {
+        textEl.innerHTML += lines[i] + "\n";
+        i++;
+        setTimeout(typeLine, 600);
+      }
+    }
+
+    window.onload = typeLine;
+  </script>
+</body>
+</html>
