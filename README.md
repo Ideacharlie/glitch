@@ -20,7 +20,7 @@ On touch screens, drag on the left half of the screen to steer, and use the Pump
 
 - **Carves:** Bottom Turn, Top Turn, Snap, Off the Lip, Floater, Cutback and Roundhouse Cutback
 - **Barrels:** Stay low inside the curl while the wave is hollow. Riding deep scores more.
-- **Airs:** Hit the lip steep with the speed bar past the white mark. Spin 180 to 900 and add a grab. You have to land close to straight or reversed, with the grab released.
+- **Airs:** Hit the lip steep with the speed bar past the white mark. Spin 180 to 900 and add a grab. Land roughly straight or reversed. Airs play in slow motion to give you time to spin.
 
 Tricks in the same combo multiply together, up to ×10. Repeating a trick is worth less each time. A wipeout loses the combo you haven't banked yet.
 
