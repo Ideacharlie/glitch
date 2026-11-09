@@ -6,11 +6,19 @@ export const COOKIE = "studio_auth"
 export const jobsStore = () => getStore({ name: "studio-jobs", consistency: "strong" })
 export const videosStore = () => getStore({ name: "studio-videos", consistency: "strong" })
 
-export type Aspect = "vertical" | "landscape"
+export interface ModelInfo {
+  id: string
+  label: string
+  note?: string
+  expectedSecs: number
+}
 
-export const ASPECTS: Record<Aspect, { width: number; height: number; expectedSecs: number; label: string }> = {
-  vertical: { width: 832, height: 1504, expectedSecs: 700, label: "Vertical 9:16" },
-  landscape: { width: 864, height: 480, expectedSecs: 125, label: "Landscape (quick)" },
+// Shown before the Mac worker has ever checked in.
+export const FALLBACK_MODELS: ModelInfo[] = [{ id: "h3", label: "MiniMax H3", note: "10 s · with sound", expectedSecs: 125 }]
+
+export async function knownModels(): Promise<ModelInfo[]> {
+  const hb = (await jobsStore().get("worker/heartbeat", { type: "json" })) as { models?: ModelInfo[] } | null
+  return hb?.models?.length ? hb.models : FALLBACK_MODELS
 }
 
 export type JobStatus = "queued" | "running" | "done" | "failed" | "cancelled"
@@ -19,7 +27,8 @@ export interface Job {
   id: string
   name: string
   prompt: string
-  aspect: Aspect
+  model: string
+  modelLabel: string
   seed: number
   status: JobStatus
   createdAt: number

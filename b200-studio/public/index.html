@@ -5,149 +5,304 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>B200 Studio</title>
 <meta name="robots" content="noindex">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23111'/><path d='M12 9l12 7-12 7z' fill='%23c8ff3d'/></svg>">
+<meta name="theme-color" content="#f6f5f2">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%2318181b'/><path d='M12 9l12 7-12 7z' fill='%23ffffff'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0c0c0d; --panel: #151517; --panel2: #1c1c1f; --line: #2a2a2e;
-    --text: #ededee; --muted: #9a9aa1; --dim: #6b6b72;
-    --accent: #c8ff3d; --accent-ink: #121400;
-    --ok: #4ade80; --warn: #fbbf24; --bad: #f87171;
-    --r: 14px;
+    --bg: #f6f5f2; --panel: #ffffff; --panel2: #f7f7f5; --panel3: #efeeea; --line: #e6e4df; --line2: #d6d3cc;
+    --text: #18181b; --muted: #57575f; --dim: #85858d;
+    --ink: #18181b; --ink-text: #ffffff;
+    --accent: #4f46e5; --accent-soft: #eef0ff; --accent-line: #c7cbff;
+    --ok: #16a34a; --ok-soft: #e9f8ef; --warn: #b45309; --warn-soft: #fff6e6; --bad: #dc2626; --bad-soft: #fdeeee;
+    --r: 16px; --r-sm: 10px;
+    --shadow: 0 1px 2px rgba(24,24,27,.04), 0 8px 24px -12px rgba(24,24,27,.10);
+    --focus: 0 0 0 3px rgba(79,70,229,.28);
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; background: var(--bg); color: var(--text); }
-  body { font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  body { font: 15px/1.55 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
   button, input, textarea { font: inherit; color: inherit; }
-  .wrap { max-width: 760px; margin: 0 auto; padding: 20px 16px 80px; }
-  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
-  .brand { white-space: nowrap; display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -0.01em; font-size: 18px; }
-  .logo { width: 28px; height: 28px; border-radius: 8px; background: #111; display: grid; place-items: center; border: 1px solid var(--line); }
-  .pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-size: 13px; color: var(--muted); max-width: 60vw; }
+  button { cursor: pointer; }
+  :focus-visible { outline: none; box-shadow: var(--focus); }
+  [hidden] { display: none !important; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+  /* ---------- shell ---------- */
+  .top { position: sticky; top: 0; z-index: 20; background: rgba(246,245,242,.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+  .top-in { max-width: 1240px; margin: 0 auto; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -0.02em; font-size: 17px; white-space: nowrap; }
+  .logo { width: 30px; height: 30px; border-radius: 9px; background: var(--ink); display: grid; place-items: center; }
+  .top-right { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-size: 13px; color: var(--muted); min-width: 0; }
   .pill span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dim); flex: none; }
-  .dot.ok { background: var(--ok); box-shadow: 0 0 0 3px rgba(74,222,128,.15); }
-  .dot.warn { background: var(--warn); }
-  .dot.bad { background: var(--bad); }
+  .dot.ok { background: var(--ok); box-shadow: 0 0 0 3px rgba(22,163,74,.16); }
+  .dot.warn { background: #f59e0b; } .dot.bad { background: var(--bad); }
+  .linkbtn { background: none; border: 0; color: var(--muted); font-size: 13px; padding: 6px 8px; border-radius: 8px; }
+  .linkbtn:hover { color: var(--text); background: var(--panel3); }
 
-  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; }
-  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
-  input[type=text], input[type=password], input[type=number], textarea {
-    width: 100%; background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 11px 12px; outline: none;
+  .banner { max-width: 1240px; margin: 16px auto 0; padding: 0 20px; }
+  .banner > div { display: flex; gap: 12px; align-items: flex-start; border-radius: 12px; padding: 12px 14px; font-size: 14px; border: 1px solid; }
+  .banner .warn { background: var(--warn-soft); border-color: #f6dfb5; color: #7a3e06; }
+  .banner .bad { background: var(--bad-soft); border-color: #f6cccc; color: #8a1c1c; }
+  .banner b { display: block; }
+
+  .layout { max-width: 1240px; margin: 0 auto; padding: 20px 20px 80px; display: grid; gap: 24px; grid-template-columns: 1fr; }
+  @media (min-width: 980px) {
+    .layout { grid-template-columns: 400px 1fr; align-items: start; }
+    .composer { position: sticky; top: 76px; }
   }
-  input:focus, textarea:focus { border-color: #4a4a50; }
-  textarea { resize: vertical; min-height: 110px; }
-  .row { display: flex; gap: 12px; flex-wrap: wrap; }
-  .row > * { flex: 1 1 200px; }
-  .field { margin-bottom: 14px; }
-  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .seg button { text-align: left; background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
-  .seg button b { display: block; font-weight: 600; }
-  .seg button small { color: var(--muted); }
-  .seg button[aria-pressed=true] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-  .btn { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 10px; padding: 12px 18px; font-weight: 700; cursor: pointer; }
+
+  /* ---------- composer ---------- */
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); }
+  .composer { padding: 20px; }
+  .composer h1 { font-size: 18px; letter-spacing: -0.02em; margin: 0 0 2px; }
+  .composer .lead { color: var(--muted); font-size: 13.5px; margin: 0 0 18px; }
+  .sect { margin-bottom: 18px; }
+  .lbl { display: flex; align-items: baseline; justify-content: space-between; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+  .lbl small { font-weight: 400; color: var(--dim); }
+  .models { display: grid; gap: 8px; }
+  .model { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 11px 12px; transition: border-color .15s, background .15s; }
+  .model:hover { border-color: var(--line2); }
+  .model[aria-checked=true] { border-color: var(--accent); background: var(--accent-soft); }
+  .radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--line2); flex: none; display: grid; place-items: center; background: #fff; }
+  .model[aria-checked=true] .radio { border-color: var(--accent); }
+  .model[aria-checked=true] .radio::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  .model b { font-weight: 600; display: block; }
+  .model small { color: var(--muted); font-size: 12.5px; }
+  .model .eta { margin-left: auto; font-size: 12px; color: var(--muted); white-space: nowrap; background: var(--panel3); padding: 2px 8px; border-radius: 999px; }
+  .model[aria-checked=true] .eta { background: #fff; }
+
+  .prompt-box { position: relative; }
+  textarea { width: 100%; min-height: 150px; resize: vertical; background: var(--panel); border: 1px solid var(--line2); border-radius: 12px; padding: 13px 14px 44px; outline: none; line-height: 1.55; transition: border-color .15s, box-shadow .15s; }
+  textarea::placeholder, input::placeholder { color: #9b9ba2; }
+  textarea:focus, input:focus { border-color: var(--accent); box-shadow: var(--focus); }
+  .prompt-tools { position: absolute; left: 10px; right: 12px; bottom: 10px; display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
+  .prompt-tools > * { pointer-events: auto; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; background: var(--panel2); border: 1px solid var(--line); color: var(--muted); border-radius: 999px; padding: 4px 11px; font-size: 12.5px; font-weight: 500; }
+  .chip:hover { color: var(--accent); border-color: var(--accent-line); background: var(--accent-soft); }
+  .count { font-size: 12px; color: var(--dim); }
+  .tip { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+  input[type=text], input[type=password], input[type=number] { width: 100%; background: var(--panel); border: 1px solid var(--line2); border-radius: var(--r-sm); padding: 10px 12px; outline: none; transition: border-color .15s, box-shadow .15s; }
+  .hint { font-size: 12.5px; color: var(--dim); margin-top: 6px; }
+  details { margin-bottom: 16px; }
+  details summary { cursor: pointer; color: var(--muted); font-size: 13px; list-style: none; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::before { content: "›"; display: inline-block; transition: transform .15s; font-size: 16px; line-height: 1; }
+  details[open] summary::before { transform: rotate(90deg); }
+  details .inner { margin-top: 10px; display: grid; gap: 6px; }
+  .check { display: flex; gap: 8px; align-items: center; font-size: 13.5px; color: var(--muted); }
+  .check input { width: 16px; height: 16px; accent-color: var(--accent); }
+  .who { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13.5px; color: var(--muted); margin-bottom: 14px; background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 8px 8px 12px; }
+  .who b { color: var(--text); font-weight: 600; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--ink); color: var(--ink-text); border: 0; border-radius: 12px; padding: 13px 18px; font-weight: 600; transition: transform .06s, background .15s; text-decoration: none; }
+  .btn:hover { background: #2c2c31; } .btn:active { transform: translateY(1px); }
   .btn:disabled { opacity: .5; cursor: default; }
-  .btn.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); font-weight: 500; padding: 7px 12px; font-size: 13px; }
-  .btn.ghost:hover { color: var(--text); }
-  .actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-  .hint { color: var(--dim); font-size: 13px; }
-  .err { color: var(--bad); font-size: 14px; min-height: 1.2em; margin-top: 8px; }
-  details summary { cursor: pointer; color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+  .btn.block { width: 100%; }
+  .btn .sub { font-weight: 400; opacity: .7; font-size: 13px; }
+  .kbd { font-size: 11.5px; color: var(--dim); text-align: center; margin-top: 8px; }
+  .err { color: var(--bad); font-size: 13.5px; min-height: 1em; margin-top: 8px; }
 
-  h2 { font-size: 14px; color: var(--muted); font-weight: 600; margin: 28px 0 10px; display: flex; align-items: center; justify-content: space-between; }
-  .tabs { display: inline-flex; background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
-  .tabs button { background: none; border: 0; padding: 4px 12px; border-radius: 999px; color: var(--muted); cursor: pointer; font-size: 13px; }
-  .tabs button[aria-pressed=true] { background: var(--panel2); color: var(--text); }
+  /* ---------- how it works ---------- */
+  .how { padding: 18px 20px; margin-bottom: 18px; position: relative; }
+  .how h3 { margin: 0 0 12px; font-size: 15px; }
+  .steps { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin: 0; padding: 0; list-style: none; }
+  .steps li { display: flex; gap: 10px; font-size: 13.5px; color: var(--muted); }
+  .steps .n { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 12px; display: grid; place-items: center; }
+  .steps b { color: var(--text); display: block; font-weight: 600; }
+  .how .close { position: absolute; top: 10px; right: 10px; }
 
-  .jobs { display: grid; gap: 12px; }
-  .job { padding: 14px; }
-  .job .top { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
-  .job .prompt { white-space: pre-wrap; word-break: break-word; margin: 0 0 6px; }
-  .job .meta { color: var(--dim); font-size: 12px; }
-  .status { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; white-space: nowrap; border: 1px solid var(--line); color: var(--muted); }
-  .status.running { color: var(--accent); border-color: rgba(200,255,61,.35); }
-  .status.done { color: var(--ok); border-color: rgba(74,222,128,.35); }
-  .status.failed { color: var(--bad); border-color: rgba(248,113,113,.35); }
-  .bar { height: 6px; background: var(--panel2); border-radius: 99px; overflow: hidden; margin: 12px 0 6px; }
-  .bar > i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 99px; transition: width 1s linear; }
-  .note { font-size: 13px; color: var(--muted); }
-  .media { margin-top: 12px; }
-  .media video { width: 100%; max-height: 70vh; border-radius: 10px; background: #000; display: block; }
-  .media .vertical { max-width: 340px; }
-  .jobfoot { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; align-items: center; }
-  .jobfoot a.btn { text-decoration: none; display: inline-block; }
-  .empty { color: var(--dim); text-align: center; padding: 30px 0; }
+  /* ---------- gallery ---------- */
+  .gal-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 2px 0 14px; }
+  .gal-head h2 { margin: 0; font-size: 18px; letter-spacing: -0.01em; }
+  .gal-head h2 small { color: var(--dim); font-weight: 500; font-size: 14px; margin-left: 6px; }
+  .tabs { display: inline-flex; background: var(--panel3); border-radius: 999px; padding: 3px; }
+  .tabs button { background: none; border: 0; padding: 5px 14px; border-radius: 999px; color: var(--muted); font-size: 13px; font-weight: 500; }
+  .tabs button[aria-pressed=true] { background: var(--panel); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); }
 
-  #login { max-width: 380px; margin: 14vh auto 0; }
-  #login h1 { font-size: 22px; margin: 0 0 4px; }
-  #login p { color: var(--muted); margin: 0 0 18px; }
-  [hidden] { display: none !important; }
-  @media (max-width: 520px) { .seg { grid-template-columns: 1fr; } .pill { max-width: 52vw; } }
+  .clip { overflow: hidden; display: flex; flex-direction: column; }
+  .media { position: relative; aspect-ratio: 16 / 9; background: var(--panel3); overflow: hidden; border-bottom: 1px solid var(--line); }
+  .media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #000; }
+  .state { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 16px; color: var(--muted); font-size: 13.5px; }
+  .state .big { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; display: block; margin-bottom: 2px; }
+  .state.queued { background: repeating-linear-gradient(135deg, #f1f0ec 0 14px, #ecebe6 14px 28px); }
+  .state.running { background: linear-gradient(120deg, #eef0ff, #f5f3ff 40%, #ecfdf3); background-size: 200% 200%; animation: drift 6s ease-in-out infinite; }
+  @keyframes drift { 50% { background-position: 100% 100%; } }
+  .state.failed { background: var(--bad-soft); color: #8a1c1c; }
+  .state.failed .big { color: var(--bad); }
+  .state.cancelled { color: var(--dim); }
+  .prog { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: rgba(79,70,229,.12); }
+  .prog > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width 1s linear; }
+  .badge { position: absolute; top: 10px; left: 10px; font-size: 11.5px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: rgba(255,255,255,.92); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+  .spinner { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line2); border-top-color: var(--accent); animation: spin .8s linear infinite; margin: 0 auto 8px; }
+  @keyframes spin { to { transform: rotate(1turn); } }
+
+  .body { padding: 13px 14px 14px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .ptext { margin: 0; white-space: pre-wrap; word-break: break-word; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; cursor: pointer; font-size: 14.5px; }
+  .ptext.open { -webkit-line-clamp: unset; display: block; }
+  .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; color: var(--dim); font-size: 12px; }
+  .mchip { color: var(--accent); background: var(--accent-soft); border-radius: 6px; padding: 1px 7px; font-weight: 600; }
+  .acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 4px; }
+  .act { display: inline-flex; align-items: center; gap: 6px; background: var(--panel); border: 1px solid var(--line2); color: var(--text); border-radius: 9px; padding: 6px 11px; font-size: 13px; font-weight: 500; text-decoration: none; }
+  .act:hover { background: var(--panel2); }
+  .act.primary { background: var(--ink); color: #fff; border-color: transparent; }
+  .act.primary:hover { background: #2c2c31; }
+  .act.danger { color: var(--muted); }
+  .act.danger:hover { color: var(--bad); border-color: #f2b8b8; background: var(--bad-soft); }
+  .act svg { width: 14px; height: 14px; }
+  .act.icon { margin-left: auto; padding: 6px 9px; }
+
+  .empty { grid-column: 1 / -1; border: 1.5px dashed var(--line2); border-radius: var(--r); padding: 44px 20px; text-align: center; color: var(--muted); background: rgba(255,255,255,.5); }
+  .empty b { display: block; color: var(--text); font-size: 16px; margin-bottom: 4px; }
+
+  .toast { position: fixed; left: 50%; bottom: 22px; transform: translate(-50%, 20px); opacity: 0; transition: .25s; background: var(--ink); color: #fff; padding: 10px 16px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.2); font-size: 14px; z-index: 50; pointer-events: none; max-width: calc(100% - 32px); }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  /* ---------- login ---------- */
+  #login { min-height: 100vh; display: grid; place-items: center; padding: 20px; background: radial-gradient(60% 45% at 50% 0%, #e9ebff, transparent 70%), var(--bg); }
+  #login .card { width: 100%; max-width: 390px; padding: 28px; }
+  #login h1 { font-size: 22px; letter-spacing: -0.02em; margin: 16px 0 4px; }
+  #login p { color: var(--muted); margin: 0 0 18px; font-size: 14px; }
+  #login .btn { margin-top: 12px; }
+  .pw { position: relative; }
+  .pw input { padding-right: 64px; }
+  .pw button { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); }
+
+  @media (max-width: 560px) {
+    .top-in { padding: 10px 16px; } .layout { padding: 16px 16px 60px; gap: 20px; } .banner { padding: 0 16px; }
+    .pill { max-width: 44vw; } .composer { padding: 16px; }
+    .grid { grid-template-columns: 1fr; } #logout { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <section id="login" class="card" hidden>
+<section id="login" hidden>
+  <form class="card" id="loginForm">
+    <div class="logo"><svg width="14" height="14" viewBox="0 0 32 32"><path d="M8 4l20 12L8 28z" fill="#ffffff"/></svg></div>
     <h1>B200 Studio</h1>
-    <p>Enter the passcode Charlie gave you.</p>
-    <form id="loginForm">
-      <div class="field"><input id="pass" type="password" autocomplete="current-password" placeholder="Passcode" autofocus></div>
-      <button class="btn" style="width:100%">Enter</button>
-      <div class="err" id="loginErr"></div>
-    </form>
-  </section>
+    <p>Turn a written prompt into a short AI video. Enter the passcode Charlie shared with you to get started.</p>
+    <label class="sr" for="pass">Passcode</label>
+    <div class="pw"><input id="pass" type="password" autocomplete="current-password" placeholder="Passcode" autofocus autocapitalize="off" spellcheck="false"><button type="button" class="linkbtn" id="showPass" aria-label="Show passcode">Show</button></div>
+    <button class="btn block">Enter</button>
+    <div class="err" id="loginErr"></div>
+  </form>
+</section>
 
-  <main id="app" hidden>
-    <header>
-      <div class="brand"><div class="logo"><svg width="14" height="14" viewBox="0 0 32 32"><path d="M8 4l20 12L8 28z" fill="#c8ff3d"/></svg></div>B200 Studio</div>
-      <div class="pill" id="gen" title=""><i class="dot" id="genDot"></i><span id="genText">Checking generator…</span></div>
-    </header>
+<div id="app" hidden>
+  <div class="top"><div class="top-in">
+    <div class="brand"><div class="logo"><svg width="13" height="13" viewBox="0 0 32 32"><path d="M8 4l20 12L8 28z" fill="#ffffff"/></svg></div>B200 Studio</div>
+    <div class="top-right">
+      <div class="pill" id="gen"><i class="dot" id="genDot"></i><span id="genText">Connecting…</span></div>
+      <button class="linkbtn" id="logout" title="Sign out">Sign out</button>
+    </div>
+  </div></div>
+  <div class="banner" id="banner" hidden role="status"><div></div></div>
 
-    <form id="newJob" class="card">
-      <div class="field">
-        <label for="prompt">What should happen in the video?</label>
-        <textarea id="prompt" maxlength="2000" placeholder="e.g. A paper boat slowly unfolds into a flock of white birds that scatter across a stormy sky, camera tilting up as they rise"></textarea>
+  <div class="layout">
+    <form class="card composer" id="newJob" autocomplete="off">
+      <h1>Make a video</h1>
+      <p class="lead">Describe a shot, pick a model, and hit Generate. Clips take a few minutes. You can close this page; they'll be waiting here when you come back.</p>
+      <div class="sect">
+        <div class="lbl"><span>Model</span><small>~ time per clip</small></div>
+        <div class="models" id="models" role="radiogroup" aria-label="Model"></div>
       </div>
-      <div class="field">
-        <label>Shape</label>
-        <div class="seg" id="aspect">
-          <button type="button" data-v="vertical" aria-pressed="true"><b>Vertical 9:16</b><small>Best quality · about 12 min</small></button>
-          <button type="button" data-v="landscape" aria-pressed="false"><b>Landscape</b><small>Smaller, quick test · about 2 min</small></button>
+
+      <div class="sect">
+        <div class="lbl"><label for="prompt">Prompt</label></div>
+        <div class="prompt-box">
+          <textarea id="prompt" maxlength="2000" placeholder="Describe a shot where something changes — e.g. a paper boat unfolds into a flock of white birds that scatter into a storm."></textarea>
+          <div class="prompt-tools">
+            <button type="button" class="chip" id="inspire">✦ Inspire me</button>
+            <span class="count" id="count"></span>
+          </div>
         </div>
+        <div class="tip">Best results come from describing <b>movement and change</b> (“ink blooms, then turns into a sun”) rather than a still scene.</div>
       </div>
-      <div class="row">
-        <div class="field"><label for="name">Your name</label><input id="name" type="text" maxlength="40" placeholder="So you can find your clips"></div>
-        <div class="field">
-          <label for="seed">Seed <span class="hint">(optional — same seed + prompt ≈ same video)</span></label>
+
+      <div id="nameRow" class="sect" hidden>
+        <div class="lbl"><label for="name">Your name</label></div>
+        <input id="name" type="text" maxlength="40" placeholder="e.g. Sam" autocomplete="given-name">
+        <div class="hint">Only used to label your clips so you can find them.</div>
+      </div>
+      <div class="who" id="whoRow" hidden><span>Posting as <b id="whoName"></b></span><button type="button" class="linkbtn" id="changeName">Change</button></div>
+
+      <details>
+        <summary>More options</summary>
+        <div class="inner">
+          <label for="seed" style="font-size:13px;color:var(--muted)">Seed — same seed + prompt gives a similar video</label>
           <input id="seed" type="number" min="0" placeholder="Random">
+          <label class="check" style="margin-top:8px"><input type="checkbox" id="notify"> Send me a browser notification when a clip is ready</label>
         </div>
-      </div>
-      <div class="actions">
-        <span class="hint">Every clip is 10 seconds with sound. Describe something <em>changing</em>, not a still scene.</span>
-        <button class="btn" id="go">Generate</button>
-      </div>
+      </details>
+
+      <button class="btn block" id="go"><span>Generate</span><span class="sub" id="goEta"></span></button>
+      <div class="kbd">or press ⌘/Ctrl + Enter</div>
       <div class="err" id="formErr"></div>
     </form>
 
-    <h2><span>Clips</span>
-      <span class="tabs" id="filter"><button type="button" data-v="mine" aria-pressed="true">Mine</button><button type="button" data-v="all" aria-pressed="false">Everyone</button></span>
-    </h2>
-    <div class="jobs" id="jobs"></div>
-  </main>
+    <main>
+      <section class="card how" id="how" hidden>
+        <button type="button" class="linkbtn close" id="howClose" aria-label="Hide these tips">Got it</button>
+        <h3>How it works</h3>
+        <ol class="steps">
+          <li><span class="n">1</span><span><b>Write a prompt</b>One or two sentences about what happens on screen.</span></li>
+          <li><span class="n">2</span><span><b>Wait your turn</b>One clip renders at a time on a shared GPU. You'll see your place in line.</span></li>
+          <li><span class="n">3</span><span><b>Watch &amp; download</b>Finished clips play right here. Remix one to get a new take.</span></li>
+        </ol>
+      </section>
+      <div class="gal-head">
+        <h2>Clips <small id="galCount"></small></h2>
+        <div class="tabs" id="filter"><button type="button" data-v="mine" aria-pressed="true">Mine</button><button type="button" data-v="all" aria-pressed="false">Everyone</button></div>
+      </div>
+      <div class="grid" id="grid"></div>
+    </main>
+  </div>
 </div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
-const $ = (s) => document.querySelector(s)
+const $ = (s, el = document) => el.querySelector(s)
 const store = {
   get(k, d) { try { return localStorage.getItem(k) ?? d } catch { return d } },
   set(k, v) { try { localStorage.setItem(k, v) } catch {} },
 }
-let aspect = store.get("aspect", "vertical")
+const ICON = {
+  dl: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 21h16"/></svg>',
+  remix: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0115.5-6.2L21 8M21 3v5h-5M21 12a9 9 0 01-15.5 6.2L3 16m0 5v-5h5"/></svg>',
+  edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>',
+  trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2m-9 0l1 14h8l1-14"/></svg>',
+  x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+}
+const IDEAS = [
+  "A paper boat unfolds into a flock of white birds that scatter across a stormy sky, camera tilting up as they rise",
+  "A single drop of black ink hits clear water, blooms into a slow cloud, then inverts into a glowing white sun",
+  "Time-lapse of a city street at dusk: shop lights flick on one by one as the sky shifts from orange to deep blue",
+  "A melting ice sculpture of a horse collapses into water that flows into the shape of a running river",
+  "Close-up of a match striking; the flame grows and becomes a sunrise over a desert horizon",
+  "A cassette tape unspools in slow motion and the ribbon curls into handwritten words that drift away",
+  "Dominoes made of glass topple in a spiral, each one shattering into light as the camera pulls back",
+  "Fog rolls over a quiet lake at dawn, then lifts to reveal a forest that changes from winter to spring",
+  "A neon sign flickers to life in the rain; its reflection in a puddle ripples and turns into a koi fish",
+  "A chalk drawing of a bicycle on a sidewalk peels off the ground and rides away down the street",
+  "Thousands of autumn leaves swirl into a vortex and reform into the shape of a giant tree",
+  "Macro shot of a seed cracking open in dark soil, roots spreading and a sprout pushing up into sunlight",
+]
+
 let filter = store.get("filter", "mine")
-let state = { jobs: [], worker: null, now: Date.now(), fetchedAt: Date.now() }
+let selectedModel = store.get("model", "")
+let state = { jobs: [], worker: null, models: [], now: Date.now(), fetchedAt: Date.now(), loaded: false }
 let pollTimer = null
-const videoUrls = new Map() // job id -> object URL
-const loading = new Set()
+let firstLoad = true
+const prevStatus = new Map()
+const videoUrls = new Map()
+const loading = new Map() // id -> percent
+let unseenReady = 0
 
 async function api(path, opts = {}) {
   const res = await fetch(path, { credentials: "same-origin", headers: { "content-type": "application/json" }, ...opts })
@@ -157,213 +312,332 @@ async function api(path, opts = {}) {
   return data
 }
 
-function showLogin() { $("#app").hidden = true; $("#login").hidden = false; clearTimeout(pollTimer); $("#pass").focus() }
-function showApp() { $("#login").hidden = true; $("#app").hidden = false; refresh() }
+function toast(msg) {
+  const t = $("#toast"); t.textContent = msg; t.classList.add("show")
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 3200)
+}
 
+// ---------- auth ----------
+function showLogin() { $("#app").hidden = true; $("#login").hidden = false; clearTimeout(pollTimer); setTimeout(() => $("#pass").focus(), 0) }
+function showApp() { $("#login").hidden = true; $("#app").hidden = false; renderName(); refresh() }
 $("#loginForm").onsubmit = async (e) => {
-  e.preventDefault()
-  $("#loginErr").textContent = ""
+  e.preventDefault(); $("#loginErr").textContent = ""
   try { await api("/api/login", { method: "POST", body: JSON.stringify({ passcode: $("#pass").value }) }); showApp() }
   catch (err) { $("#loginErr").textContent = err.message }
 }
+$("#showPass").onclick = () => { const i = $("#pass"); const show = i.type === "password"; i.type = show ? "text" : "password"; $("#showPass").textContent = show ? "Hide" : "Show"; $("#showPass").setAttribute("aria-label", show ? "Hide passcode" : "Show passcode"); i.focus() }
+$("#logout").onclick = async () => { await api("/api/login", { method: "DELETE" }).catch(() => {}); showLogin() }
 
-// --- form ---
-$("#name").value = store.get("name", "")
-function setSeg(el, v) { for (const b of el.querySelectorAll("button")) b.setAttribute("aria-pressed", String(b.dataset.v === v)) }
-setSeg($("#aspect"), aspect); setSeg($("#filter"), filter)
-$("#aspect").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; aspect = b.dataset.v; store.set("aspect", aspect); setSeg($("#aspect"), aspect) }
-$("#filter").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; filter = b.dataset.v; store.set("filter", filter); setSeg($("#filter"), filter); render() }
+// ---------- composer ----------
+const myName = () => (store.get("name", "") || "").trim()
+function renderName() {
+  const n = myName()
+  $("#nameRow").hidden = !!n; $("#whoRow").hidden = !n
+  $("#whoName").textContent = n
+}
+$("#changeName").onclick = () => { $("#name").value = myName(); $("#nameRow").hidden = false; $("#whoRow").hidden = true; $("#name").focus() }
+$("#name").addEventListener("change", () => { const v = $("#name").value.trim(); if (v) { store.set("name", v); renderName(); render() } })
+
+const updCount = () => { const n = $("#prompt").value.length; $("#count").textContent = n ? `${n}/2000` : ""; store.set("draft", $("#prompt").value) }
+$("#prompt").value = store.get("draft", ""); updCount()
+$("#prompt").addEventListener("input", updCount)
+
+$("#how").hidden = store.get("howSeen", "") === "1"
+$("#howClose").onclick = () => { store.set("howSeen", "1"); $("#how").hidden = true }
+
+const canNotify = "Notification" in window
+$("#notify").closest("label").hidden = !canNotify
+$("#notify").checked = canNotify && store.get("notify", "") === "1" && Notification.permission === "granted"
+$("#notify").onchange = async (e) => {
+  if (!e.target.checked) { store.set("notify", ""); return }
+  const p = await Notification.requestPermission().catch(() => "denied")
+  if (p === "granted") { store.set("notify", "1"); toast("We'll notify you when a clip is ready") }
+  else { e.target.checked = false; toast("Notifications are blocked in this browser's settings") }
+}
+$("#prompt").addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); $("#newJob").requestSubmit() } })
+$("#inspire").onclick = () => {
+  const cur = $("#prompt").value
+  let next; do { next = IDEAS[Math.floor(Math.random() * IDEAS.length)] } while (next === cur && IDEAS.length > 1)
+  $("#prompt").value = next; updCount(); $("#prompt").focus()
+}
+
+function mins(sec) { sec = Math.max(0, sec); return sec < 90 ? `${Math.max(1, Math.round(sec / 10) * 10)} s` : `${Math.round(sec / 60)} min` }
+
+function currentModel() { return state.models.find((m) => m.id === selectedModel) || state.models[0] }
+function renderModels() {
+  const box = $("#models")
+  if (!state.models.find((m) => m.id === selectedModel) && state.models[0]) selectedModel = state.models[0].id
+  const sig = JSON.stringify(state.models) + selectedModel
+  if (box.dataset.sig === sig) return
+  box.dataset.sig = sig
+  box.innerHTML = ""
+  for (const m of state.models) {
+    const b = document.createElement("button")
+    b.type = "button"; b.className = "model"; b.setAttribute("role", "radio"); b.setAttribute("aria-checked", String(m.id === selectedModel))
+    b.innerHTML = `<i class="radio"></i><span><b></b><small></small></span><span class="eta"></span>`
+    $("b", b).textContent = m.label
+    $("small", b).textContent = m.note || "Text to video"
+    $(".eta", b).textContent = `~${mins(m.expectedSecs)}`
+    b.onclick = () => { selectedModel = m.id; store.set("model", m.id); renderModels() }
+    box.append(b)
+  }
+  const cm = currentModel()
+  $("#goEta").textContent = cm ? `· ~${mins(cm.expectedSecs)}` : ""
+}
+
+async function submitJob({ prompt, model, seed }) {
+  const name = myName()
+  return api("/api/jobs", { method: "POST", body: JSON.stringify({ name, prompt, model, seed }) })
+}
 
 $("#newJob").onsubmit = async (e) => {
   e.preventDefault()
-  const name = $("#name").value.trim()
+  const typed = $("#name").value.trim()
+  if (typed) { store.set("name", typed); renderName() }
   const prompt = $("#prompt").value.trim()
   $("#formErr").textContent = ""
-  if (!name) { $("#formErr").textContent = "Add your name first."; $("#name").focus(); return }
+  if (!myName()) { $("#formErr").textContent = "Add your name first."; $("#nameRow").hidden = false; $("#name").focus(); return }
   if (!prompt) { $("#formErr").textContent = "Write a prompt first."; $("#prompt").focus(); return }
-  store.set("name", name)
   $("#go").disabled = true
   try {
-    await api("/api/jobs", { method: "POST", body: JSON.stringify({ name, prompt, aspect, seed: $("#seed").value }) })
-    $("#prompt").value = ""
-    if (filter !== "mine") { filter = "mine"; setSeg($("#filter"), filter) }
+    await submitJob({ prompt, model: currentModel()?.id, seed: $("#seed").value })
+    $("#prompt").value = ""; updCount()
+    if (filter !== "mine") setFilter("mine")
+    toast("Added to the queue")
     await refresh()
+    if (matchMedia("(max-width: 979px)").matches) $(".gal-head").scrollIntoView({ behavior: "smooth", block: "start" })
   } catch (err) { $("#formErr").textContent = err.message }
   finally { $("#go").disabled = false }
 }
 
-// --- data ---
+function setFilter(v) { filter = v; store.set("filter", v); for (const b of $("#filter").children) b.setAttribute("aria-pressed", String(b.dataset.v === v)); render() }
+$("#filter").onclick = (e) => { const b = e.target.closest("button"); if (b) setFilter(b.dataset.v) }
+setFilter(filter)
+
+// ---------- data ----------
 async function refresh() {
   clearTimeout(pollTimer)
   try {
     const d = await api("/api/jobs")
-    state = { ...d, fetchedAt: Date.now() }
-    render()
+    state = { ...d, fetchedAt: Date.now(), loaded: true }
+    notifyChanges()
+    renderModels(); render()
   } catch (e) { if (e.message === "Signed out") return }
   const active = state.jobs.some((j) => j.status === "queued" || j.status === "running")
-  pollTimer = setTimeout(refresh, document.hidden ? 120000 : active ? 8000 : 30000)
+  pollTimer = setTimeout(refresh, document.hidden ? 60000 : active ? 6000 : 25000)
 }
-document.addEventListener("visibilitychange", () => { if (!document.hidden && !$("#app").hidden) refresh() })
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) { unseenReady = 0; document.title = "B200 Studio"; if (!$("#app").hidden) refresh() }
+})
 setInterval(() => { if (!$("#app").hidden) tick() }, 1000)
 
-// --- rendering ---
-const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]))
+function notifyChanges() {
+  const me = myName().toLowerCase()
+  for (const j of state.jobs) {
+    const before = prevStatus.get(j.id)
+    if (!firstLoad && before && before !== j.status && j.name.toLowerCase() === me) {
+      if (j.status === "done") {
+        toast("✓ Your clip is ready")
+        if (document.hidden) { unseenReady++; document.title = `(${unseenReady}) Ready · B200 Studio` }
+        if (document.hidden && store.get("notify", "") === "1" && canNotify && Notification.permission === "granted") {
+          try { new Notification("Your clip is ready", { body: j.prompt.slice(0, 120), tag: j.id }) } catch {}
+        }
+      }
+      if (j.status === "failed") toast("A clip failed — you can retry it")
+    }
+    prevStatus.set(j.id, j.status)
+  }
+  firstLoad = false
+}
+
+// ---------- gallery ----------
 const nowServer = () => state.now + (Date.now() - state.fetchedAt)
 function ago(t) {
   const s = Math.max(0, Math.round((nowServer() - t) / 1000))
-  if (s < 60) return "just now"
-  if (s < 3600) return `${Math.round(s / 60)} min ago`
-  if (s < 86400) return `${Math.round(s / 3600)} h ago`
+  if (s < 60) return "just now"; if (s < 3600) return `${Math.round(s / 60)}m ago`; if (s < 86400) return `${Math.round(s / 3600)}h ago`
   return new Date(t).toLocaleDateString()
 }
-function mins(sec) { const m = Math.max(1, Math.round(sec / 60)); return `${m} min` }
-
-function renderWorker() {
-  const w = state.worker
-  const dot = $("#genDot"), txt = $("#genText")
-  dot.className = "dot"
-  const age = w ? (nowServer() - w.at) / 1000 : Infinity
-  if (!w || age > 150) {
-    dot.classList.add("bad")
-    txt.textContent = "Generator offline"
-    $("#gen").title = "Charlie's Mac isn't connected right now. You can still queue prompts; they'll run when it's back."
-  } else if (!w.comfyOk) {
-    dot.classList.add("warn")
-    txt.textContent = "GPU unreachable"
-    $("#gen").title = (w.comfyError || "") + " Prompts will wait in the queue."
-  } else {
-    dot.classList.add("ok")
-    txt.textContent = `Online · ${w.gpu || "GPU"}`
-    $("#gen").title = "Connected to the GPU"
-  }
-}
-
 function progress(j) {
   if (j.status !== "running" || !j.genStartedAt) return null
   const el = (nowServer() - j.genStartedAt) / 1000
   return { pct: Math.min(97, (el / j.expectedSecs) * 100), left: Math.max(0, j.expectedSecs - el) }
 }
-
-function statusLabel(j) {
-  if (j.status === "queued") return j.position === 0 ? "Next up" : `#${j.position + 1} in line`
-  return { running: "Making", done: "Ready", failed: "Failed", cancelled: "Cancelled" }[j.status]
-}
-
-function noteFor(j) {
+function stateHTML(j) {
   if (j.status === "queued") {
-    const wait = j.waitSecs ? ` · starts in about ${mins(j.waitSecs)}` : ""
-    return `Waiting${wait}`
+    if (j.modelMissing) return `<div class="state queued"><div><span class="big">Waiting</span>${esc(j.modelLabel || j.model)} isn't available right now</div></div>`
+    const head = j.position === 0 ? "Next up" : `#${(j.position ?? 0) + 1} in line`
+    return `<div class="state queued"><div><span class="big">${head}</span>${j.waitSecs ? `starts in ~${mins(j.waitSecs)}` : "starting soon"}</div></div>`
   }
   if (j.status === "running") {
     const p = progress(j)
-    if (p) return p.left > 20 ? `${j.note || "Generating"} · about ${mins(p.left)} left` : "Almost done…"
-    return j.note || "Starting"
+    const big = p ? `${Math.round(p.pct)}%` : "Starting"
+    const sub = p ? (p.pct < 90 ? `~${mins(p.left)} left` : "almost done…") : (j.note || "sending to the GPU")
+    return `<div class="state running"><div><span class="big" data-pct>${big}</span><span data-sub>${esc(sub)}</span></div></div><div class="prog"><i style="width:${p ? p.pct : 2}%"></i></div>`
   }
-  if (j.status === "failed") return j.error || "Something went wrong"
-  if (j.status === "done" && j.video) return `${(j.video.size / 1e6).toFixed(1)} MB`
+  if (j.status === "failed") return `<div class="state failed"><div><span class="big">Failed</span>${esc(j.error || "Something went wrong")}</div></div>`
+  if (j.status === "cancelled") return `<div class="state cancelled"><div>Cancelled</div></div>`
+  if (j.status === "done") {
+    const pct = loading.get(j.id)
+    return `<div class="state"><div><div class="spinner"></div>${pct != null ? `Loading ${pct}%` : "Loading"}</div></div>`
+  }
   return ""
 }
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]))
 
 function visibleJobs() {
-  const me = (store.get("name", "") || "").toLowerCase()
+  const me = myName().toLowerCase()
   return state.jobs.filter((j) => filter === "all" || !me || j.name.toLowerCase() === me)
 }
 
+// Load a finished clip once its card is on (or near) the screen — also when it finishes while already visible.
+const onScreen = new Set()
+const io = "IntersectionObserver" in window ? new IntersectionObserver((entries) => {
+  for (const en of entries) {
+    const id = en.target.dataset.id
+    if (en.isIntersecting) onScreen.add(id); else onScreen.delete(id)
+    const j = state.jobs.find((x) => x.id === id)
+    if (en.isIntersecting && j && j.status === "done") loadVideo(j)
+  }
+}, { rootMargin: "300px" }) : null
+
 function render() {
   renderWorker()
-  const list = $("#jobs")
+  const grid = $("#grid")
   const jobs = visibleJobs()
-  const seen = new Set()
+  $("#galCount").textContent = jobs.length ? String(jobs.length) : ""
   if (!jobs.length) {
-    list.innerHTML = `<div class="empty">${filter === "mine" ? "Your clips will show up here." : "No clips yet."}</div>`
+    grid.innerHTML = filter === "mine"
+      ? `<div class="empty"><b>No clips yet</b>Write a prompt and press Generate. Not sure what to try? Press “✦ Inspire me”.</div>`
+      : `<div class="empty"><b>Nothing here yet</b>Clips from everyone who uses the studio will show up here.</div>`
     return
   }
-  list.querySelector(".empty")?.remove()
+  $(".empty", grid)?.remove()
+  const seen = new Set()
   jobs.forEach((j, i) => {
     seen.add(j.id)
-    let el = list.querySelector(`[data-id="${j.id}"]`)
+    let el = grid.querySelector(`[data-id="${j.id}"]`)
     if (!el) {
       el = document.createElement("article")
-      el.className = "card job"
-      el.dataset.id = j.id
-      el.innerHTML = `<div class="top"><div><p class="prompt"></p><div class="meta"></div></div><span class="status"></span></div>
-        <div class="bar" hidden><i></i></div><div class="note"></div><div class="media"></div><div class="jobfoot"></div>`
-      el.querySelector(".prompt").textContent = j.prompt
+      el.className = "card clip"; el.dataset.id = j.id
+      el.innerHTML = `<div class="media"><div class="slot"></div><span class="badge"></span></div>
+        <div class="body"><p class="ptext"></p><div class="meta"></div><div class="acts"></div></div>`
+      $(".ptext", el).textContent = j.prompt
+      $(".ptext", el).onclick = (e) => e.currentTarget.classList.toggle("open")
+      io?.observe(el)
     }
-    if (list.children[i] !== el) list.insertBefore(el, list.children[i] || null)
-    el.querySelector(".meta").textContent = `${j.name} · ${j.aspect === "vertical" ? "Vertical" : "Landscape"} · seed ${j.seed} · ${ago(j.createdAt)}`
-    const st = el.querySelector(".status")
-    st.className = `status ${j.status}`
-    st.textContent = statusLabel(j)
-    el.querySelector(".note").textContent = noteFor(j)
-    const p = progress(j)
-    el.querySelector(".bar").hidden = !p
-    if (p) el.querySelector(".bar > i").style.width = p.pct + "%"
-    const key = `${j.status}|${videoUrls.has(j.id)}|${loading.has(j.id)}`
-    if (el.dataset.key !== key) { el.dataset.key = key; renderFoot(el, j) }
+    if (grid.children[i] !== el) grid.insertBefore(el, grid.children[i] || null)
+    $(".meta", el).innerHTML = `<span class="mchip">${esc(j.modelLabel || "MiniMax H3")}</span><span>${esc(j.name)}</span><span>·</span><span>${ago(j.createdAt)}</span>`
+    const badge = $(".badge", el)
+    badge.hidden = j.status !== "done"
+    badge.textContent = j.video ? `${(j.video.size / 1e6).toFixed(1)} MB` : ""
+    const key = [j.status, j.modelMissing, videoUrls.has(j.id), loading.has(j.id), j.status === "queued" ? j.position : ""].join("|")
+    if (el.dataset.key !== key) { el.dataset.key = key; renderMedia(el, j); renderActs(el, j) }
+    if (j.status === "done" && !videoUrls.has(j.id) && (!io || onScreen.has(j.id))) loadVideo(j)
   })
-  for (const el of [...list.querySelectorAll(".job")]) if (!seen.has(el.dataset.id)) el.remove()
+  for (const el of [...grid.querySelectorAll(".clip")]) if (!seen.has(el.dataset.id)) { io?.unobserve(el); el.remove() }
+}
+
+function renderMedia(el, j) {
+  const slot = $(".slot", el)
+  const url = videoUrls.get(j.id)
+  if (j.status === "done" && url) {
+    if (!$("video", slot)) {
+      slot.innerHTML = `<video src="${url}" controls playsinline loop muted preload="metadata"></video>`
+      const v = $("video", slot)
+      const calm = matchMedia("(prefers-reduced-motion: reduce)").matches
+      const vio = !calm && "IntersectionObserver" in window ? new IntersectionObserver(([en]) => { if (en.isIntersecting) v.play().catch(() => {}); else v.pause() }, { threshold: 0.6 }) : null
+      vio?.observe(v)
+    }
+  } else slot.innerHTML = stateHTML(j)
+}
+
+function act(label, icon, cls, fn, iconOnly) {
+  const b = document.createElement(fn ? "button" : "a")
+  b.className = `act ${cls || ""}${iconOnly ? " icon" : ""}`; b.innerHTML = `${ICON[icon] || ""}<span></span>`
+  if (iconOnly) { b.setAttribute("aria-label", label); b.title = label; $("span", b).className = "sr" }
+  $("span", b).textContent = label
+  if (fn) { b.type = "button"; b.onclick = fn }
+  return b
+}
+function renderActs(el, j) {
+  const a = $(".acts", el); a.innerHTML = ""
+  const edit = () => { $("#prompt").value = j.prompt; updCount(); if (state.models.some((m) => m.id === j.model)) { selectedModel = j.model; renderModels() } window.scrollTo({ top: 0, behavior: "smooth" }); $("#prompt").focus() }
+  const again = (sameSeed) => async () => {
+    try { await submitJob({ prompt: j.prompt, model: j.model, seed: sameSeed ? j.seed : "" }); toast(sameSeed ? "Retrying" : "Remixing with a new seed"); refresh() }
+    catch (e) { toast(e.message) }
+  }
+  if (j.status === "done" && j.video) {
+    const url = videoUrls.get(j.id)
+    const d = act("Download", "dl", "primary")
+    if (url) { d.href = url; d.download = j.video.filename } else { d.href = "#"; d.onclick = (e) => { e.preventDefault(); loadVideo(j) } }
+    a.append(d, act("Remix", "remix", "", again(false)), act("Edit", "edit", "", edit))
+  }
+  if (j.status === "failed") a.append(act("Retry", "remix", "primary", again(true)), act("Edit", "edit", "", edit))
+  if (j.status === "cancelled") a.append(act("Edit", "edit", "", edit))
+  if (j.status === "queued") a.append(act("Cancel", "x", "danger", () => remove(j, false)))
+  if (["done", "failed", "cancelled"].includes(j.status)) a.append(act("Delete", "trash", "danger", () => remove(j, true), true))
+  if (j.status === "running") { const s = document.createElement("span"); s.className = "meta"; s.textContent = `Seed ${j.seed}`; a.append(s) }
 }
 
 function tick() {
   renderWorker()
   for (const j of visibleJobs()) {
     if (j.status !== "running" && j.status !== "queued") continue
-    const el = document.querySelector(`[data-id="${j.id}"]`)
-    if (!el) continue
-    el.querySelector(".note").textContent = noteFor(j)
+    const el = document.querySelector(`[data-id="${j.id}"]`); if (!el) continue
     const p = progress(j)
-    el.querySelector(".bar").hidden = !p
-    if (p) el.querySelector(".bar > i").style.width = p.pct + "%"
+    if (j.status === "running" && p) {
+      const pct = $("[data-pct]", el), sub = $("[data-sub]", el), bar = $(".prog > i", el)
+      if (pct) pct.textContent = `${Math.round(p.pct)}%`
+      if (sub) sub.textContent = p.pct < 90 ? `~${mins(p.left)} left` : "almost done…"
+      if (bar) bar.style.width = p.pct + "%"
+    }
   }
 }
 
-function renderFoot(el, j) {
-  const foot = el.querySelector(".jobfoot")
-  const media = el.querySelector(".media")
-  foot.innerHTML = ""
-  const add = (html, fn) => { const t = document.createElement("template"); t.innerHTML = html.trim(); const n = t.content.firstChild; if (fn) n.onclick = fn; foot.append(n); return n }
-  if (j.status === "done" && j.video) {
-    const url = videoUrls.get(j.id)
-    if (url) {
-      if (!media.querySelector("video")) media.innerHTML = `<video class="${j.aspect}" src="${url}" controls playsinline loop></video>`
-      add(`<a class="btn" download="${esc(j.video.filename)}" href="${url}">Download</a>`)
-    } else {
-      media.innerHTML = ""
-      const b = add(`<button class="btn">${loading.has(j.id) ? "Loading…" : "▶ Watch"}</button>`, () => loadVideo(j))
-      b.disabled = loading.has(j.id)
-    }
-  } else media.innerHTML = ""
-  if (j.status === "failed" || j.status === "cancelled" || j.status === "done") {
-    add(`<button class="btn ghost">Use this prompt</button>`, () => { $("#prompt").value = j.prompt; setSeg($("#aspect"), (aspect = j.aspect)); window.scrollTo({ top: 0, behavior: "smooth" }); $("#prompt").focus() })
+function renderWorker() {
+  const w = state.worker, dot = $("#genDot"), txt = $("#genText"), pill = $("#gen")
+  const banner = $("#banner"), inner = banner.firstElementChild
+  dot.className = "dot"
+  if (!state.loaded) { txt.textContent = "Connecting…"; banner.hidden = true; return }
+  const age = w ? (nowServer() - w.at) / 1000 : Infinity
+  let msg = null
+  if (!w || age > 150) {
+    dot.classList.add("bad"); txt.textContent = "Generator offline"
+    msg = ["bad", "The video generator is offline right now.", "You can still add prompts. They'll start automatically when it's back online, and you can close this page in the meantime."]
+  } else if (!w.comfyOk) {
+    dot.classList.add("warn"); txt.textContent = "Generator paused"
+    msg = ["warn", "The generator can't reach the GPU at the moment.", "Prompts you add will wait in line and start as soon as it reconnects."]
+  } else {
+    dot.classList.add("ok"); txt.textContent = w.busy ? "Online · working" : "Online · ready"
   }
-  if (j.status === "queued") add(`<button class="btn ghost">Cancel</button>`, () => remove(j, false))
-  if (j.status === "done" || j.status === "failed" || j.status === "cancelled")
-    add(`<button class="btn ghost">Delete</button>`, () => remove(j, true))
+  pill.title = msg ? msg[1] + " " + msg[2] : "Connected to the GPU"
+  const sig = msg ? msg.join() : ""
+  if (banner.dataset.sig !== sig) {
+    banner.dataset.sig = sig; banner.hidden = !msg
+    if (msg) { inner.className = msg[0]; inner.innerHTML = `<span><b></b><span></span></span>`; inner.querySelector("b").textContent = msg[1]; inner.querySelector("span span").textContent = msg[2] }
+  }
 }
 
 async function remove(j, confirmIt) {
   if (confirmIt && !confirm("Delete this clip for everyone?")) return
-  try { await api(`/api/jobs/${j.id}`, { method: "DELETE" }); videoUrls.delete(j.id); await refresh() }
-  catch (e) { alert(e.message) }
+  try { await api(`/api/jobs/${j.id}`, { method: "DELETE" }); const u = videoUrls.get(j.id); if (u) URL.revokeObjectURL(u); videoUrls.delete(j.id); await refresh() }
+  catch (e) { toast(e.message) }
 }
 
 async function loadVideo(j) {
-  if (loading.has(j.id)) return
-  loading.add(j.id); render()
-  const btn = document.querySelector(`[data-id="${j.id}"] .jobfoot .btn`)
+  if (loading.has(j.id) || videoUrls.has(j.id) || !j.video) return
+  loading.set(j.id, 0); render()
   try {
-    const parts = []
-    let got = 0
+    const parts = []; let got = 0
     for (let i = 0; i < j.video.chunks; i++) {
       const res = await fetch(`/api/video/${j.id}/${i}`, { credentials: "same-origin" })
       if (!res.ok) throw new Error(`Couldn't load the clip (${res.status})`)
-      const b = await res.arrayBuffer()
-      parts.push(b); got += b.byteLength
-      if (btn) btn.textContent = `Loading… ${Math.round((got / j.video.size) * 100)}%`
+      const b = await res.arrayBuffer(); parts.push(b); got += b.byteLength
+      loading.set(j.id, Math.round((got / j.video.size) * 100))
+      const el = document.querySelector(`[data-id="${j.id}"] .state`); if (el) el.lastElementChild.lastChild.textContent = `Loading ${loading.get(j.id)}%`
     }
     videoUrls.set(j.id, URL.createObjectURL(new Blob(parts, { type: j.video.type })))
-  } catch (e) { alert(e.message) }
+  } catch (e) { toast(e.message) }
   finally { loading.delete(j.id); render() }
 }
 

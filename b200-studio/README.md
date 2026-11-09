@@ -1,7 +1,8 @@
 # B200 Studio
 
 A small website that lets people **off the VPN** queue up AI video prompts and download the results,
-using the B200's ComfyUI (MiniMax H3, 10-second clips with sound).
+using the B200's ComfyUI. People pick a model (MiniMax H3, Wan, LTX, …), type a prompt, and the clip shows up
+in the page when it's done.
 
 Live site: **https://b200-studio.netlify.app** (passcode protected)
 
@@ -18,16 +19,17 @@ friend's browser ──HTTPS──▶ Netlify site (page + small API + storage)
 - The **website** keeps a queue of prompts and the finished clips (Netlify Functions + Netlify Blobs).
   Nobody visiting it ever talks to the B200 directly, and the B200 address is never sent to the site.
 - The **worker** runs on the Mac Mini, which is on the Research Warrant VPN. Every 30 seconds it asks the
-  site for the next prompt, runs it on ComfyUI using the known-good H3 workflow (only the prompt, seed,
-  duration and size are changed), then uploads the clip. It makes no incoming connections, so nothing on
-  the Mac is exposed.
-- One clip runs at a time. Vertical 832×1504 takes ~12 min; landscape 864×480 takes ~2 min.
+  site for the next prompt, runs it on ComfyUI using a workflow copied from a run that already worked (only
+  the prompt and seed change), then uploads the clip. It makes no incoming connections, so nothing on the
+  Mac is exposed.
+- One clip runs at a time. The site shows each model's typical time, learned from real runs.
 
 ## Friend's side
 
-Open the link → enter the passcode → type a prompt → pick Vertical or Landscape → **Generate**.
-The page shows the queue position, an estimated wait, a progress bar, then **Watch** and **Download**.
-Each person can have up to 3 clips waiting at once.
+Open the link → enter the passcode → pick a model → type a prompt → **Generate**.
+The page shows the queue position, an estimated wait and progress; finished clips play inline with
+**Download**, **Remix** (same prompt, new seed) and **Edit**. Failed clips have **Retry**. Each person can have
+up to 3 clips waiting at once. Optional browser notification when a clip is ready.
 
 ## Mac Mini setup (one time)
 
@@ -48,18 +50,35 @@ Remove it with `./install-mac.sh --uninstall`.
 (Site configuration → Environment variables). Changing the passcode signs everyone out; redeploy after
 changing either.
 
-### If the workflow template can't be loaded
+## Models
 
-The worker copies the workflow from ComfyUI run `3bfe3a21-…` the first time and saves it as
-`worker/template.json`. ComfyUI forgets its history when it restarts, so if that run is gone, export a
-working MiniMax H3 run in **API format** and save it as `worker/template.json`. It needs nodes
-`105:104` (prompt), `105:111` (duration), `105:15` (seed), `105:110`/`105:112` (width/height) — run
-`node worker.mjs --check` to confirm.
+Each model is a ComfyUI workflow copied from a run that **already worked** on the B200 and saved in
+`worker/models/<id>.json`. A job only changes the prompt (the text node feeding the sampler's *positive*
+input) and the seed; loaders, size, length and every connection stay as they were. The website offers
+whichever models the worker has.
+
+- **MiniMax H3** comes from the hand-checked run `3bfe3a21-…` (config `templateHistoryId`), with the
+  duration fixed at 10 s. Other H3 runs are never auto-picked (some use variants whose LoRAs aren't installed).
+- **Wan, LTX, HunyuanVideo, Mochi, CogVideoX** are found automatically: at start-up and every 30 minutes
+  the worker looks through ComfyUI's history for the newest successful text-to-video run of each
+  (runs that need a starting image are skipped). So to add Wan or LTX, run it once in ComfyUI.
+
+```bash
+node worker.mjs --list                      # what the site is offering
+node worker.mjs --discover                  # show candidate runs and add new models now
+node worker.mjs --import <prompt_id> --as wan --label "Wan 2.2"   # use a specific run
+node worker.mjs --import-file workflow_api.json --as ltx           # or an exported API-format workflow
+node worker.mjs --remove wan
+```
+
+ComfyUI forgets its history when it restarts, so the copied workflows are kept in `worker/models/`
+and keep working. If the H3 run is gone before it was ever copied, export a working H3 run in API format
+and import it with `--import-file … --as h3`.
 
 ## Status the site shows
 
-- **Online · NVIDIA B200**: worker connected and GPU reachable.
-- **GPU unreachable**: the Mac is on but can't reach ComfyUI (usually the VPN is off). Prompts wait.
+- **Online**: worker connected and GPU reachable.
+- **Generator paused**: the Mac is on but can't reach ComfyUI (usually the VPN is off) or has no models. Prompts wait.
 - **Generator offline**: the worker hasn't checked in for 2+ minutes (Mac asleep/off). Prompts wait.
 
 ## Development

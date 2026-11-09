@@ -40,8 +40,13 @@ export default async (req: Request, context: Context) => {
     // Resume anything the worker had in flight (e.g. after the Mac restarted), else the oldest queued job.
     const running = all.filter((j) => j.status === "running").sort((a, b) => a.createdAt - b.createdAt)[0]
     if (running) return json({ job: running, resumed: true })
-    const next = all.filter((j) => j.status === "queued").sort((a, b) => a.createdAt - b.createdAt)[0]
+    // Only hand out jobs for models this worker actually has; others wait until it does.
+    const have = new Set(((b.heartbeat && b.heartbeat.models) || []).map((m: { id: string }) => m.id))
+    const runnable = (j: Job) => have.size === 0 || have.has(j.model || "h3")
+    const next = all.filter((j) => j.status === "queued" && runnable(j)).sort((a, b) => a.createdAt - b.createdAt)[0]
     if (!next) return json({ job: null })
+    const info = ((b.heartbeat && b.heartbeat.models) || []).find((m: { id: string }) => m.id === (next.model || "h3"))
+    if (info?.expectedSecs) next.expectedSecs = info.expectedSecs
     next.status = "running"
     next.startedAt = Date.now()
     next.note = "Sending to the GPU"

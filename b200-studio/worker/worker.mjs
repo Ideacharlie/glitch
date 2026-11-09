@@ -3,17 +3,25 @@
 // It asks the website for new prompts, runs them on the B200's ComfyUI, and uploads the finished clip.
 // Only outgoing connections: nothing on this Mac is exposed to the internet.
 //
-//   node worker.mjs           run forever
-//   node worker.mjs --check   test the setup once and exit
+//   node worker.mjs                         run forever
+//   node worker.mjs --check                 test the setup once and exit
+//   node worker.mjs --list                  show the models this worker offers
+//   node worker.mjs --discover              look through ComfyUI's history for working Wan/LTX/… runs to use
+//   node worker.mjs --import <prompt_id> [--as wan] [--label "Wan 2.2"]   use a specific ComfyUI run
+//   node worker.mjs --import-file workflow_api.json [--as ltx] [--label "LTX"]
+//   node worker.mjs --remove <model_id>
+//
+// Every model is a graph copied from a run that already worked; a job only changes its prompt and seed.
 //
 // ComfyUI calls go through `curl` on purpose: macOS curl trusts the VPN root CA from the keychain,
 // while Node would need extra certificate setup.
 
 import { spawn } from "node:child_process"
-import { readFileSync, writeFileSync, existsSync, mkdtempSync, rmSync, statSync } from "node:fs"
+import { readFileSync, existsSync, mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, dirname } from "node:path"
 import { fileURLToPath } from "node:url"
+import { FAMILIES, applyJob, buildH3, buildModel, classify, hasModel, loadModels, needsImage, saveModel } from "./models.mjs"
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const cfgPath = process.env.STUDIO_CONFIG || join(HERE, "config.json")
@@ -30,8 +38,8 @@ const POLL = (cfg.pollSeconds || 30) * 1000
 const CHUNK = 3_000_000
 const MAX_RUN_MS = 45 * 60 * 1000
 
-const SIZES = { vertical: [832, 1504], landscape: [864, 480] }
-const NODES = { prompt: "105:104", duration: "105:111", seed: "105:15", width: "105:110", height: "105:112" }
+const MODELS_DIR = join(HERE, "models")
+const DISCOVER_EVERY = 30 * 60 * 1000
 
 const log = (...a) => console.log(new Date().toLocaleTimeString(), ...a)
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
@@ -106,50 +114,81 @@ function describeComfyError(e) {
   return m.slice(0, 200)
 }
 
-// ---------- workflow template ----------
-let template = null
-async function loadTemplate() {
-  if (template) return template
-  const cache = join(HERE, "template.json")
-  if (existsSync(cache)) {
-    template = JSON.parse(readFileSync(cache, "utf8"))
-  } else {
+// ---------- models ----------
+let models = loadModels(MODELS_DIR)
+const famOrder = (id) => {
+  const i = FAMILIES.findIndex((f) => f.id === id)
+  return i < 0 ? 99 : i
+}
+const modelList = () =>
+  [...models.values()].sort((a, b) => famOrder(a.id) - famOrder(b.id)).map((m) => ({ id: m.id, label: m.label, note: m.note || "", expectedSecs: Math.round(m.avgSecs || 240) }))
+
+async function ensureH3() {
+  if (models.has("h3")) return
+  const legacy = join(HERE, "template.json") // from the first version of this worker
+  let graph = existsSync(legacy) ? JSON.parse(readFileSync(legacy, "utf8")) : null
+  if (!graph && TEMPLATE_ID) {
     const h = await comfyGet(`/history/${TEMPLATE_ID}`)
-    const entry = h[TEMPLATE_ID]
-    if (!entry) throw new Error(`Template run ${TEMPLATE_ID} not found in ComfyUI history`)
-    template = entry.prompt[2]
-    writeFileSync(cache, JSON.stringify(template, null, 2))
-    log("Saved workflow template to template.json")
+    graph = h[TEMPLATE_ID]?.prompt?.[2]
+    if (!graph) throw new Error(`H3 run ${TEMPLATE_ID} isn't in ComfyUI's history any more (it resets when ComfyUI restarts)`)
   }
-  for (const [what, id] of Object.entries(NODES)) if (!template[id]) throw new Error(`Template is missing node ${id} (${what})`)
-  return template
+  if (!graph) return
+  const m = buildH3(graph, TEMPLATE_ID)
+  saveModel(MODELS_DIR, m)
+  models.set(m.id, m)
+  log(`+ model ready: ${m.label}`)
 }
 
-function setNumber(node, preferred, value) {
-  const inputs = node.inputs
-  for (const k of [preferred, "value", "int", "number"]) {
-    if (k in inputs && typeof inputs[k] !== "object") {
-      inputs[k] = value
-      return
+/** Newest successful text-to-video run per model family that we don't have yet. */
+async function discover({ verbose = false } = {}) {
+  const hist = await comfyGet("/history?max_items=500", 180)
+  const best = new Map()
+  for (const [pid, e] of Object.entries(hist)) {
+    const graph = e?.prompt?.[2]
+    const okRun = e?.status?.status_str === "success" || e?.status?.completed
+    if (!graph || !okRun || !findVideo(e.outputs)) continue
+    const c = classify(graph)
+    if (!c) continue
+    const why = c.family.discover === false ? "H3 only uses the hand-checked run" : needsImage(graph) ? "needs a starting image" : hasModel(MODELS_DIR, c.family.id) ? "already set up" : ""
+    if (verbose) console.log(`  ${pid}  ${c.family.label.padEnd(12)} ${c.file}${why ? `  (skipped: ${why})` : ""}`)
+    if (why) continue
+    const num = Number(e.prompt[0]) || 0
+    if (!best.has(c.family.id) || num > best.get(c.family.id).num) best.set(c.family.id, { pid, graph, num })
+  }
+  const added = []
+  for (const { pid, graph } of best.values()) {
+    try {
+      const m = buildModel({ graph, sourcePromptId: pid })
+      saveModel(MODELS_DIR, m)
+      models.set(m.id, m)
+      added.push(m)
+      log(`+ model ready: ${m.label} (from ComfyUI run ${pid})`)
+    } catch (e) {
+      log(`! couldn't use run ${pid}: ${e.message}`)
     }
   }
-  throw new Error(`Don't know which input to set on node ${node.class_type}: ${Object.keys(inputs).join(", ")}`)
+  return added
 }
 
-async function buildGraph(job) {
-  const g = structuredClone(await loadTemplate())
-  const [w, h] = SIZES[job.aspect] || SIZES.vertical
-  g[NODES.prompt].inputs.prompt = job.prompt
-  setNumber(g[NODES.duration], "value", 10)
-  g[NODES.seed].inputs.noise_seed = job.seed
-  setNumber(g[NODES.width], "width", w)
-  setNumber(g[NODES.height], "height", h)
-  return g
+let lastDiscover = 0
+async function refreshModels() {
+  if (Date.now() - lastDiscover < DISCOVER_EVERY) return
+  lastDiscover = Date.now()
+  try {
+    await ensureH3()
+  } catch (e) {
+    log("! H3: " + e.message)
+  }
+  try {
+    await discover()
+  } catch (e) {
+    log("! model discovery: " + e.message)
+  }
 }
 
 // ---------- running one job ----------
 async function update(job, patch) {
-  const r = await studio("/api/worker/update", { body: { id: job.id, patch, heartbeat: { comfyOk: true, ...lastGpu, busy: true } } })
+  const r = await studio("/api/worker/update", { body: { id: job.id, patch, heartbeat: { comfyOk: true, ...lastGpu, models: modelList(), busy: true } } })
   return r.cancelled
 }
 
@@ -162,7 +201,9 @@ function findVideo(outputs) {
 }
 
 async function runJob(job) {
-  log(`▶ ${job.id} [${job.aspect}] "${job.prompt.slice(0, 60)}" — ${job.name}`)
+  const model = models.get(job.model || "h3")
+  if (!model) throw new Error(`The ${job.modelLabel || job.model} model isn't set up on the GPU machine`)
+  log(`▶ ${job.id} [${model.label}] "${job.prompt.slice(0, 60)}" — ${job.name}`)
   let pid = job.comfyPromptId
   let genStartedAt = job.genStartedAt
 
@@ -175,7 +216,7 @@ async function runJob(job) {
     else log(`  resuming GPU job ${pid}`)
   }
   if (!pid) {
-    const r = await comfyPost("/prompt", { prompt: await buildGraph(job), client_id: "b200-studio" })
+    const r = await comfyPost("/prompt", { prompt: applyJob(model, job), client_id: "b200-studio" })
     if (r.node_errors && Object.keys(r.node_errors).length) throw new Error("ComfyUI rejected the workflow: " + JSON.stringify(r.node_errors).slice(0, 300))
     pid = r.prompt_id
     log(`  submitted as ${pid}`)
@@ -198,6 +239,7 @@ async function runJob(job) {
       if (st.completed || st.status_str === "success") {
         const file = findVideo(entry.outputs)
         if (!file) throw new Error("The GPU finished but produced no video file")
+        if (genStartedAt) learnTiming(model, (Date.now() - genStartedAt) / 1000)
         return deliver(job, file)
       }
     }
@@ -218,6 +260,15 @@ async function runJob(job) {
     }
     await sleep(8000)
   }
+}
+
+function learnTiming(model, secs) {
+  if (!(secs > 5 && secs < 3 * 3600)) return
+  model.avgSecs = model.measured ? Math.round(model.avgSecs * 0.6 + secs * 0.4) : Math.round(secs)
+  model.measured = (model.measured || 0) + 1
+  try {
+    saveModel(MODELS_DIR, model)
+  } catch {}
 }
 
 async function cancelOnGpu(pid) {
@@ -276,18 +327,21 @@ async function check() {
   const hb = await heartbeat()
   say(hb.comfyOk, hb.comfyOk ? `GPU server reachable: ${hb.gpu}${hb.vramGB ? ` (${hb.vramGB} GB)` : ""}` : `GPU server: ${hb.comfyError}`)
   if (hb.comfyOk) {
-    try {
-      const t = await loadTemplate()
-      say(true, `Workflow template loaded (${Object.keys(t).length} nodes)`)
-      for (const [what, id] of Object.entries(NODES)) console.log(`    ${what.padEnd(8)} ${id} ${t[id].class_type} inputs: ${Object.keys(t[id].inputs).join(", ")}`)
-      await buildGraph({ prompt: "test", seed: 1, aspect: "vertical" })
-      say(true, "Prompt/size/seed fields can be set")
-    } catch (e) {
-      say(false, "Workflow template: " + e.message)
+    lastDiscover = 0
+    await refreshModels()
+    say(models.size > 0, models.size ? `${models.size} model${models.size > 1 ? "s" : ""} ready:` : "No models ready (see README: 'Adding models')")
+    for (const m of models.values()) {
+      try {
+        applyJob(m, { prompt: "test", seed: 1 })
+        const [pid, pk] = m.fields.prompt
+        console.log(`    ${m.id.padEnd(8)} ${m.label.padEnd(18)} prompt→${pid}.${pk}  seed→${m.fields.seeds.map((x) => x.join(".")).join(", ") || "(none)"}  ~${Math.round(m.avgSecs)}s`)
+      } catch (e) {
+        say(false, `${m.id}: ${e.message}`)
+      }
     }
   }
   try {
-    await studio("/api/worker/update", { body: { id: "check", heartbeat: hb } }).catch((e) => {
+    await studio("/api/worker/update", { body: { id: "check", heartbeat: { ...hb, models: modelList() } } }).catch((e) => {
       if (!/404/.test(e.message)) throw e
     })
     say(true, `Website reachable and worker token accepted: ${STUDIO}`)
@@ -304,13 +358,9 @@ async function main() {
     let job = null
     try {
       let hb = await heartbeat()
-      if (hb.comfyOk) {
-        try {
-          await loadTemplate()
-        } catch (e) {
-          hb = { ...hb, comfyOk: false, comfyError: "Workflow template problem: " + e.message.slice(0, 150) }
-        }
-      }
+      if (hb.comfyOk) await refreshModels()
+      hb = { ...hb, models: modelList() }
+      if (hb.comfyOk && !models.size) hb = { ...hb, comfyOk: false, comfyError: "No video models are set up on the GPU machine yet." }
       const state = hb.comfyOk ? "GPU reachable" : hb.comfyError
       if (state !== lastState) log(hb.comfyOk ? `● ${state} (${hb.gpu})` : `○ ${state}`)
       lastState = state
@@ -337,5 +387,54 @@ async function main() {
   }
 }
 
-if (process.argv.includes("--check")) check()
-else main()
+const argv = process.argv.slice(2)
+const opt = (name) => {
+  const i = argv.indexOf(name)
+  return i >= 0 ? argv[i + 1] : undefined
+}
+
+async function cli() {
+  if (argv.includes("--check")) return check()
+  if (argv.includes("--list")) {
+    if (!models.size) console.log("No models yet. Run --discover or --import.")
+    for (const m of models.values()) console.log(`${m.id.padEnd(8)} ${m.label.padEnd(18)} ~${Math.round(m.avgSecs)}s  ${m.source}`)
+    return
+  }
+  if (argv.includes("--discover")) {
+    console.log("Successful video runs in ComfyUI's history:")
+    const added = await discover({ verbose: true })
+    console.log(added.length ? `Added: ${added.map((m) => m.label).join(", ")}` : "Nothing new to add.")
+    return
+  }
+  if (opt("--remove")) {
+    rmSync(join(MODELS_DIR, `${opt("--remove")}.json`), { force: true })
+    return console.log(`Removed ${opt("--remove")}`)
+  }
+  if (opt("--import") || opt("--import-file")) {
+    let graph, pid
+    if (opt("--import")) {
+      pid = opt("--import")
+      const h = await comfyGet(`/history/${pid}`)
+      graph = h[pid]?.prompt?.[2]
+      if (!graph) throw new Error(`Run ${pid} isn't in ComfyUI's history`)
+    } else {
+      const raw = JSON.parse(readFileSync(opt("--import-file"), "utf8"))
+      graph = raw.prompt && typeof raw.prompt === "object" && !Array.isArray(raw.prompt) ? raw.prompt : raw
+      if (graph.nodes && graph.links) throw new Error("That's the UI-format workflow. In ComfyUI use Workflow → Export (API) instead.")
+    }
+    if (needsImage(graph)) console.log("Warning: this workflow loads an image/video input; the site only sends text prompts.")
+    const id = opt("--as")
+    const m = id === "h3" ? buildH3(graph, pid || "file") : buildModel({ graph, sourcePromptId: pid, idOverride: id, labelOverride: opt("--label") })
+    if (opt("--label")) m.label = opt("--label")
+    saveModel(MODELS_DIR, m)
+    console.log(`Saved model "${m.label}" (${m.id}). prompt→${m.fields.prompt.join(".")}, seed→${m.fields.seeds.map((x) => x.join(".")).join(", ")}`)
+    console.log("Restart the worker (or wait for its next check-in) and it will appear on the website.")
+    return
+  }
+  return main()
+}
+
+cli().catch((e) => {
+  console.error("✗ " + e.message)
+  process.exit(1)
+})

@@ -1,8 +1,7 @@
 import type { Config, Context } from "@netlify/functions"
 import {
-  ASPECTS,
-  type Aspect,
   type Job,
+  knownModels,
   deleteVideo,
   getJob,
   isAuthed,
@@ -24,7 +23,9 @@ export default async (req: Request, context: Context) => {
 
   if (req.method === "GET") {
     const all = await listJobs()
-    const active = all.filter((j) => j.status === "queued" || j.status === "running")
+    const models = await knownModels()
+    const available = new Set(models.map((m) => m.id))
+    const active = all.filter((j) => j.status === "running" || (j.status === "queued" && available.has(j.model || "h3")))
     // Oldest first = the order the Mac picks them up in.
     const line = active.sort((a, b) => a.createdAt - b.createdAt)
     const position = new Map(line.map((j, i) => [j.id, i]))
@@ -37,9 +38,14 @@ export default async (req: Request, context: Context) => {
         return s + x.expectedSecs
       }, 0)
     }
-    const jobs = all.slice(0, SHOW).map((j) => ({ ...j, position: position.get(j.id) ?? null, waitSecs: ahead(j) }))
+    const jobs = all.slice(0, SHOW).map((j) => ({
+      ...j,
+      position: position.get(j.id) ?? null,
+      waitSecs: ahead(j),
+      modelMissing: j.status === "queued" && !available.has(j.model || "h3"),
+    }))
     const worker = await jobsStore().get("worker/heartbeat", { type: "json" })
-    return json({ jobs, worker, now: Date.now() })
+    return json({ jobs, worker, models, now: Date.now() })
   }
 
   if (req.method === "POST" && !id) {
@@ -49,7 +55,8 @@ export default async (req: Request, context: Context) => {
     } catch {}
     const name = String(b.name || "").trim().slice(0, 40)
     const prompt = String(b.prompt || "").trim()
-    const aspect = (b.aspect in ASPECTS ? b.aspect : "vertical") as Aspect
+    const models = await knownModels()
+    const model = models.find((m) => m.id === b.model) || models[0]
     let seed = Number.parseInt(b.seed, 10)
     if (!Number.isFinite(seed) || seed < 0) seed = Math.floor(Math.random() * 2 ** 31)
     seed = Math.min(seed, 2 ** 48)
@@ -68,11 +75,12 @@ export default async (req: Request, context: Context) => {
       id: newId(),
       name,
       prompt,
-      aspect,
+      model: model.id,
+      modelLabel: model.label,
       seed,
       status: "queued",
       createdAt: Date.now(),
-      expectedSecs: ASPECTS[aspect].expectedSecs,
+      expectedSecs: model.expectedSecs || 240,
     }
     await saveJob(job)
     return json({ job }, 201)
