@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>B200 Studio</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23111'/><path d='M12 9l12 7-12 7z' fill='%23c8ff3d'/></svg>">
+<style>
+  :root {
+    --bg: #0c0c0d; --panel: #151517; --panel2: #1c1c1f; --line: #2a2a2e;
+    --text: #ededee; --muted: #9a9aa1; --dim: #6b6b72;
+    --accent: #c8ff3d; --accent-ink: #121400;
+    --ok: #4ade80; --warn: #fbbf24; --bad: #f87171;
+    --r: 14px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body { font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  button, input, textarea { font: inherit; color: inherit; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 20px 16px 80px; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+  .brand { white-space: nowrap; display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -0.01em; font-size: 18px; }
+  .logo { width: 28px; height: 28px; border-radius: 8px; background: #111; display: grid; place-items: center; border: 1px solid var(--line); }
+  .pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-size: 13px; color: var(--muted); max-width: 60vw; }
+  .pill span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dim); flex: none; }
+  .dot.ok { background: var(--ok); box-shadow: 0 0 0 3px rgba(74,222,128,.15); }
+  .dot.warn { background: var(--warn); }
+  .dot.bad { background: var(--bad); }
+
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; }
+  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+  input[type=text], input[type=password], input[type=number], textarea {
+    width: 100%; background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 11px 12px; outline: none;
+  }
+  input:focus, textarea:focus { border-color: #4a4a50; }
+  textarea { resize: vertical; min-height: 110px; }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .row > * { flex: 1 1 200px; }
+  .field { margin-bottom: 14px; }
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .seg button { text-align: left; background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
+  .seg button b { display: block; font-weight: 600; }
+  .seg button small { color: var(--muted); }
+  .seg button[aria-pressed=true] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .btn { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 10px; padding: 12px 18px; font-weight: 700; cursor: pointer; }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .btn.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); font-weight: 500; padding: 7px 12px; font-size: 13px; }
+  .btn.ghost:hover { color: var(--text); }
+  .actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .hint { color: var(--dim); font-size: 13px; }
+  .err { color: var(--bad); font-size: 14px; min-height: 1.2em; margin-top: 8px; }
+  details summary { cursor: pointer; color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+
+  h2 { font-size: 14px; color: var(--muted); font-weight: 600; margin: 28px 0 10px; display: flex; align-items: center; justify-content: space-between; }
+  .tabs { display: inline-flex; background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
+  .tabs button { background: none; border: 0; padding: 4px 12px; border-radius: 999px; color: var(--muted); cursor: pointer; font-size: 13px; }
+  .tabs button[aria-pressed=true] { background: var(--panel2); color: var(--text); }
+
+  .jobs { display: grid; gap: 12px; }
+  .job { padding: 14px; }
+  .job .top { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+  .job .prompt { white-space: pre-wrap; word-break: break-word; margin: 0 0 6px; }
+  .job .meta { color: var(--dim); font-size: 12px; }
+  .status { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; white-space: nowrap; border: 1px solid var(--line); color: var(--muted); }
+  .status.running { color: var(--accent); border-color: rgba(200,255,61,.35); }
+  .status.done { color: var(--ok); border-color: rgba(74,222,128,.35); }
+  .status.failed { color: var(--bad); border-color: rgba(248,113,113,.35); }
+  .bar { height: 6px; background: var(--panel2); border-radius: 99px; overflow: hidden; margin: 12px 0 6px; }
+  .bar > i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 99px; transition: width 1s linear; }
+  .note { font-size: 13px; color: var(--muted); }
+  .media { margin-top: 12px; }
+  .media video { width: 100%; max-height: 70vh; border-radius: 10px; background: #000; display: block; }
+  .media .vertical { max-width: 340px; }
+  .jobfoot { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; align-items: center; }
+  .jobfoot a.btn { text-decoration: none; display: inline-block; }
+  .empty { color: var(--dim); text-align: center; padding: 30px 0; }
+
+  #login { max-width: 380px; margin: 14vh auto 0; }
+  #login h1 { font-size: 22px; margin: 0 0 4px; }
+  #login p { color: var(--muted); margin: 0 0 18px; }
+  [hidden] { display: none !important; }
+  @media (max-width: 520px) { .seg { grid-template-columns: 1fr; } .pill { max-width: 52vw; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section id="login" class="card" hidden>
+    <h1>B200 Studio</h1>
+    <p>Enter the passcode Charlie gave you.</p>
+    <form id="loginForm">
+      <div class="field"><input id="pass" type="password" autocomplete="current-password" placeholder="Passcode" autofocus></div>
+      <button class="btn" style="width:100%">Enter</button>
+      <div class="err" id="loginErr"></div>
+    </form>
+  </section>
+
+  <main id="app" hidden>
+    <header>
+      <div class="brand"><div class="logo"><svg width="14" height="14" viewBox="0 0 32 32"><path d="M8 4l20 12L8 28z" fill="#c8ff3d"/></svg></div>B200 Studio</div>
+      <div class="pill" id="gen" title=""><i class="dot" id="genDot"></i><span id="genText">Checking generator…</span></div>
+    </header>
+
+    <form id="newJob" class="card">
+      <div class="field">
+        <label for="prompt">What should happen in the video?</label>
+        <textarea id="prompt" maxlength="2000" placeholder="e.g. A paper boat slowly unfolds into a flock of white birds that scatter across a stormy sky, camera tilting up as they rise"></textarea>
+      </div>
+      <div class="field">
+        <label>Shape</label>
+        <div class="seg" id="aspect">
+          <button type="button" data-v="vertical" aria-pressed="true"><b>Vertical 9:16</b><small>Best quality · about 12 min</small></button>
+          <button type="button" data-v="landscape" aria-pressed="false"><b>Landscape</b><small>Smaller, quick test · about 2 min</small></button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field"><label for="name">Your name</label><input id="name" type="text" maxlength="40" placeholder="So you can find your clips"></div>
+        <div class="field">
+          <label for="seed">Seed <span class="hint">(optional — same seed + prompt ≈ same video)</span></label>
+          <input id="seed" type="number" min="0" placeholder="Random">
+        </div>
+      </div>
+      <div class="actions">
+        <span class="hint">Every clip is 10 seconds with sound. Describe something <em>changing</em>, not a still scene.</span>
+        <button class="btn" id="go">Generate</button>
+      </div>
+      <div class="err" id="formErr"></div>
+    </form>
+
+    <h2><span>Clips</span>
+      <span class="tabs" id="filter"><button type="button" data-v="mine" aria-pressed="true">Mine</button><button type="button" data-v="all" aria-pressed="false">Everyone</button></span>
+    </h2>
+    <div class="jobs" id="jobs"></div>
+  </main>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s)
+const store = {
+  get(k, d) { try { return localStorage.getItem(k) ?? d } catch { return d } },
+  set(k, v) { try { localStorage.setItem(k, v) } catch {} },
+}
+let aspect = store.get("aspect", "vertical")
+let filter = store.get("filter", "mine")
+let state = { jobs: [], worker: null, now: Date.now(), fetchedAt: Date.now() }
+let pollTimer = null
+const videoUrls = new Map() // job id -> object URL
+const loading = new Set()
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, { credentials: "same-origin", headers: { "content-type": "application/json" }, ...opts })
+  const data = await res.json().catch(() => ({}))
+  if (res.status === 401 && path !== "/api/login") { showLogin(); throw new Error("Signed out") }
+  if (!res.ok) throw new Error(data.error || `Error ${res.status}`)
+  return data
+}
+
+function showLogin() { $("#app").hidden = true; $("#login").hidden = false; clearTimeout(pollTimer); $("#pass").focus() }
+function showApp() { $("#login").hidden = true; $("#app").hidden = false; refresh() }
+
+$("#loginForm").onsubmit = async (e) => {
+  e.preventDefault()
+  $("#loginErr").textContent = ""
+  try { await api("/api/login", { method: "POST", body: JSON.stringify({ passcode: $("#pass").value }) }); showApp() }
+  catch (err) { $("#loginErr").textContent = err.message }
+}
+
+// --- form ---
+$("#name").value = store.get("name", "")
+function setSeg(el, v) { for (const b of el.querySelectorAll("button")) b.setAttribute("aria-pressed", String(b.dataset.v === v)) }
+setSeg($("#aspect"), aspect); setSeg($("#filter"), filter)
+$("#aspect").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; aspect = b.dataset.v; store.set("aspect", aspect); setSeg($("#aspect"), aspect) }
+$("#filter").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; filter = b.dataset.v; store.set("filter", filter); setSeg($("#filter"), filter); render() }
+
+$("#newJob").onsubmit = async (e) => {
+  e.preventDefault()
+  const name = $("#name").value.trim()
+  const prompt = $("#prompt").value.trim()
+  $("#formErr").textContent = ""
+  if (!name) { $("#formErr").textContent = "Add your name first."; $("#name").focus(); return }
+  if (!prompt) { $("#formErr").textContent = "Write a prompt first."; $("#prompt").focus(); return }
+  store.set("name", name)
+  $("#go").disabled = true
+  try {
+    await api("/api/jobs", { method: "POST", body: JSON.stringify({ name, prompt, aspect, seed: $("#seed").value }) })
+    $("#prompt").value = ""
+    if (filter !== "mine") { filter = "mine"; setSeg($("#filter"), filter) }
+    await refresh()
+  } catch (err) { $("#formErr").textContent = err.message }
+  finally { $("#go").disabled = false }
+}
+
+// --- data ---
+async function refresh() {
+  clearTimeout(pollTimer)
+  try {
+    const d = await api("/api/jobs")
+    state = { ...d, fetchedAt: Date.now() }
+    render()
+  } catch (e) { if (e.message === "Signed out") return }
+  const active = state.jobs.some((j) => j.status === "queued" || j.status === "running")
+  pollTimer = setTimeout(refresh, document.hidden ? 120000 : active ? 8000 : 30000)
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden && !$("#app").hidden) refresh() })
+setInterval(() => { if (!$("#app").hidden) tick() }, 1000)
+
+// --- rendering ---
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]))
+const nowServer = () => state.now + (Date.now() - state.fetchedAt)
+function ago(t) {
+  const s = Math.max(0, Math.round((nowServer() - t) / 1000))
+  if (s < 60) return "just now"
+  if (s < 3600) return `${Math.round(s / 60)} min ago`
+  if (s < 86400) return `${Math.round(s / 3600)} h ago`
+  return new Date(t).toLocaleDateString()
+}
+function mins(sec) { const m = Math.max(1, Math.round(sec / 60)); return `${m} min` }
+
+function renderWorker() {
+  const w = state.worker
+  const dot = $("#genDot"), txt = $("#genText")
+  dot.className = "dot"
+  const age = w ? (nowServer() - w.at) / 1000 : Infinity
+  if (!w || age > 150) {
+    dot.classList.add("bad")
+    txt.textContent = "Generator offline"
+    $("#gen").title = "Charlie's Mac isn't connected right now. You can still queue prompts; they'll run when it's back."
+  } else if (!w.comfyOk) {
+    dot.classList.add("warn")
+    txt.textContent = "GPU unreachable"
+    $("#gen").title = (w.comfyError || "") + " Prompts will wait in the queue."
+  } else {
+    dot.classList.add("ok")
+    txt.textContent = `Online · ${w.gpu || "GPU"}`
+    $("#gen").title = "Connected to the GPU"
+  }
+}
+
+function progress(j) {
+  if (j.status !== "running" || !j.genStartedAt) return null
+  const el = (nowServer() - j.genStartedAt) / 1000
+  return { pct: Math.min(97, (el / j.expectedSecs) * 100), left: Math.max(0, j.expectedSecs - el) }
+}
+
+function statusLabel(j) {
+  if (j.status === "queued") return j.position === 0 ? "Next up" : `#${j.position + 1} in line`
+  return { running: "Making", done: "Ready", failed: "Failed", cancelled: "Cancelled" }[j.status]
+}
+
+function noteFor(j) {
+  if (j.status === "queued") {
+    const wait = j.waitSecs ? ` · starts in about ${mins(j.waitSecs)}` : ""
+    return `Waiting${wait}`
+  }
+  if (j.status === "running") {
+    const p = progress(j)
+    if (p) return p.left > 20 ? `${j.note || "Generating"} · about ${mins(p.left)} left` : "Almost done…"
+    return j.note || "Starting"
+  }
+  if (j.status === "failed") return j.error || "Something went wrong"
+  if (j.status === "done" && j.video) return `${(j.video.size / 1e6).toFixed(1)} MB`
+  return ""
+}
+
+function visibleJobs() {
+  const me = (store.get("name", "") || "").toLowerCase()
+  return state.jobs.filter((j) => filter === "all" || !me || j.name.toLowerCase() === me)
+}
+
+function render() {
+  renderWorker()
+  const list = $("#jobs")
+  const jobs = visibleJobs()
+  const seen = new Set()
+  if (!jobs.length) {
+    list.innerHTML = `<div class="empty">${filter === "mine" ? "Your clips will show up here." : "No clips yet."}</div>`
+    return
+  }
+  list.querySelector(".empty")?.remove()
+  jobs.forEach((j, i) => {
+    seen.add(j.id)
+    let el = list.querySelector(`[data-id="${j.id}"]`)
+    if (!el) {
+      el = document.createElement("article")
+      el.className = "card job"
+      el.dataset.id = j.id
+      el.innerHTML = `<div class="top"><div><p class="prompt"></p><div class="meta"></div></div><span class="status"></span></div>
+        <div class="bar" hidden><i></i></div><div class="note"></div><div class="media"></div><div class="jobfoot"></div>`
+      el.querySelector(".prompt").textContent = j.prompt
+    }
+    if (list.children[i] !== el) list.insertBefore(el, list.children[i] || null)
+    el.querySelector(".meta").textContent = `${j.name} · ${j.aspect === "vertical" ? "Vertical" : "Landscape"} · seed ${j.seed} · ${ago(j.createdAt)}`
+    const st = el.querySelector(".status")
+    st.className = `status ${j.status}`
+    st.textContent = statusLabel(j)
+    el.querySelector(".note").textContent = noteFor(j)
+    const p = progress(j)
+    el.querySelector(".bar").hidden = !p
+    if (p) el.querySelector(".bar > i").style.width = p.pct + "%"
+    const key = `${j.status}|${videoUrls.has(j.id)}|${loading.has(j.id)}`
+    if (el.dataset.key !== key) { el.dataset.key = key; renderFoot(el, j) }
+  })
+  for (const el of [...list.querySelectorAll(".job")]) if (!seen.has(el.dataset.id)) el.remove()
+}
+
+function tick() {
+  renderWorker()
+  for (const j of visibleJobs()) {
+    if (j.status !== "running" && j.status !== "queued") continue
+    const el = document.querySelector(`[data-id="${j.id}"]`)
+    if (!el) continue
+    el.querySelector(".note").textContent = noteFor(j)
+    const p = progress(j)
+    el.querySelector(".bar").hidden = !p
+    if (p) el.querySelector(".bar > i").style.width = p.pct + "%"
+  }
+}
+
+function renderFoot(el, j) {
+  const foot = el.querySelector(".jobfoot")
+  const media = el.querySelector(".media")
+  foot.innerHTML = ""
+  const add = (html, fn) => { const t = document.createElement("template"); t.innerHTML = html.trim(); const n = t.content.firstChild; if (fn) n.onclick = fn; foot.append(n); return n }
+  if (j.status === "done" && j.video) {
+    const url = videoUrls.get(j.id)
+    if (url) {
+      if (!media.querySelector("video")) media.innerHTML = `<video class="${j.aspect}" src="${url}" controls playsinline loop></video>`
+      add(`<a class="btn" download="${esc(j.video.filename)}" href="${url}">Download</a>`)
+    } else {
+      media.innerHTML = ""
+      const b = add(`<button class="btn">${loading.has(j.id) ? "Loading…" : "▶ Watch"}</button>`, () => loadVideo(j))
+      b.disabled = loading.has(j.id)
+    }
+  } else media.innerHTML = ""
+  if (j.status === "failed" || j.status === "cancelled" || j.status === "done") {
+    add(`<button class="btn ghost">Use this prompt</button>`, () => { $("#prompt").value = j.prompt; setSeg($("#aspect"), (aspect = j.aspect)); window.scrollTo({ top: 0, behavior: "smooth" }); $("#prompt").focus() })
+  }
+  if (j.status === "queued") add(`<button class="btn ghost">Cancel</button>`, () => remove(j, false))
+  if (j.status === "done" || j.status === "failed" || j.status === "cancelled")
+    add(`<button class="btn ghost">Delete</button>`, () => remove(j, true))
+}
+
+async function remove(j, confirmIt) {
+  if (confirmIt && !confirm("Delete this clip for everyone?")) return
+  try { await api(`/api/jobs/${j.id}`, { method: "DELETE" }); videoUrls.delete(j.id); await refresh() }
+  catch (e) { alert(e.message) }
+}
+
+async function loadVideo(j) {
+  if (loading.has(j.id)) return
+  loading.add(j.id); render()
+  const btn = document.querySelector(`[data-id="${j.id}"] .jobfoot .btn`)
+  try {
+    const parts = []
+    let got = 0
+    for (let i = 0; i < j.video.chunks; i++) {
+      const res = await fetch(`/api/video/${j.id}/${i}`, { credentials: "same-origin" })
+      if (!res.ok) throw new Error(`Couldn't load the clip (${res.status})`)
+      const b = await res.arrayBuffer()
+      parts.push(b); got += b.byteLength
+      if (btn) btn.textContent = `Loading… ${Math.round((got / j.video.size) * 100)}%`
+    }
+    videoUrls.set(j.id, URL.createObjectURL(new Blob(parts, { type: j.video.type })))
+  } catch (e) { alert(e.message) }
+  finally { loading.delete(j.id); render() }
+}
+
+api("/api/login").then((d) => (d.authed ? showApp() : showLogin())).catch(showLogin)
+</script>
+</body>
+</html>

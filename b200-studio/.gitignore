@@ -1,0 +1,6 @@
+node_modules/
+.env
+.netlify/
+worker/config.json
+worker/template.json
+dev/sample.mp4

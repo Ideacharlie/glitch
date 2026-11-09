@@ -1,0 +1,7 @@
+{
+  "studioUrl": "https://b200-studio.netlify.app",
+  "workerToken": "<WORKER_TOKEN from the Netlify site's environment variables>",
+  "comfyUrl": "<https://your ComfyUI host on the VPN>",
+  "templateHistoryId": "3bfe3a21-e6e1-4aba-9efe-a0b20b6a4f67",
+  "pollSeconds": 30
+}
